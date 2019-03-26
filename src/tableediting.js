@@ -36,7 +36,7 @@ import injectTableLayoutPostFixer from './converters/table-layout-post-fixer';
 import injectTableCellContentsPostFixer from './converters/table-cell-content-post-fixer';
 import injectTableCellPostFixer from './converters/tablecell-post-fixer';
 
-import '../../theme/tableediting.css';
+import '../theme/tableediting.css';
 
 /**
  * The table editing feature.

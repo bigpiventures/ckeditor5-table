@@ -14,11 +14,11 @@ import Collection from '@ckeditor/ckeditor5-utils/src/collection';
 
 import InsertTableView from './ui/inserttableview';
 
-import tableIcon from '../../theme/icons/table.svg';
-import tableColumnIcon from '../../theme/icons/table-column.svg';
-import tableRowIcon from '../../theme/icons/table-row.svg';
-import tableMergeCellIcon from '../../theme/icons/table-merge-cell.svg';
-import splitTableIcon from '../../theme/icons/split-table.svg';
+import tableIcon from '../theme/icons/table.svg';
+import tableColumnIcon from '../theme/icons/table-column.svg';
+import tableRowIcon from '../theme/icons/table-row.svg';
+import tableMergeCellIcon from '../theme/icons/table-merge-cell.svg';
+import splitTableIcon from '../theme/icons/split-table.svg';
 
 /**
  * The table UI plugin. It introduces:
