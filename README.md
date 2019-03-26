@@ -1,3 +1,8 @@
+### Fork of [CkEditor5 Table](https://github.com/ckeditor/ckeditor5-table)
+
+This fork adds `SplitTableCommand` that allows users to split a table vertically/horizontally. Splitting a table across a spanned cell might not work correctly
+for now. See this issue for timeline: https://github.com/ckeditor/ckeditor5-table/issues/179
+
 CKEditor 5 table feature
 ============================
 
