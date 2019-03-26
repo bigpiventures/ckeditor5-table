@@ -29,14 +29,15 @@ import RemoveRowCommand from './commands/removerowcommand';
 import RemoveColumnCommand from './commands/removecolumncommand';
 import SetHeaderRowCommand from './commands/setheaderrowcommand';
 import SetHeaderColumnCommand from './commands/setheadercolumncommand';
+import SplitTableCommand from './commands/splittablecommand';
 import { findAncestor } from './commands/utils';
-import TableUtils from '../src/tableutils';
+import TableUtils from './tableutils';
 
 import injectTableLayoutPostFixer from './converters/table-layout-post-fixer';
 import injectTableCellContentsPostFixer from './converters/table-cell-content-post-fixer';
 import injectTableCellPostFixer from './converters/tablecell-post-fixer';
 
-import '../theme/tableediting.css';
+import '../../theme/tableediting.css';
 
 /**
  * The table editing feature.
@@ -144,6 +145,9 @@ export default class TableEditing extends Plugin {
 
 		editor.commands.add( 'setTableColumnHeader', new SetHeaderColumnCommand( editor ) );
 		editor.commands.add( 'setTableRowHeader', new SetHeaderRowCommand( editor ) );
+
+		editor.commands.add( 'splitTableHorizontally', new SplitTableCommand( editor, { direction: 'horizontally' } ) );
+		editor.commands.add( 'splitTableVertically', new SplitTableCommand( editor, { direction: 'vertically' } ) );
 
 		injectTableLayoutPostFixer( model );
 		injectTableCellContentsPostFixer( model );
@@ -256,3 +260,4 @@ export default class TableEditing extends Plugin {
 		};
 	}
 }
+

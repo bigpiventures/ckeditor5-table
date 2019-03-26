@@ -14,10 +14,11 @@ import Collection from '@ckeditor/ckeditor5-utils/src/collection';
 
 import InsertTableView from './ui/inserttableview';
 
-import tableIcon from './../theme/icons/table.svg';
-import tableColumnIcon from './../theme/icons/table-column.svg';
-import tableRowIcon from './../theme/icons/table-row.svg';
-import tableMergeCellIcon from './../theme/icons/table-merge-cell.svg';
+import tableIcon from '../../theme/icons/table.svg';
+import tableColumnIcon from '../../theme/icons/table-column.svg';
+import tableRowIcon from '../../theme/icons/table-row.svg';
+import tableMergeCellIcon from '../../theme/icons/table-merge-cell.svg';
+import splitTableIcon from '../../theme/icons/split-table.svg';
 
 /**
  * The table UI plugin. It introduces:
@@ -146,6 +147,27 @@ export default class TableUI extends Plugin {
 			return this._prepareDropdown( t( 'Row' ), tableRowIcon, options, locale );
 		} );
 
+		editor.ui.componentFactory.add( 'splitTable', locale => {
+			const options = [
+				{
+					type: 'button',
+					model: {
+						commandName: 'splitTableHorizontally',
+						label: t( 'Split table above/below' )
+					}
+				},
+				{
+					type: 'button',
+					model: {
+						commandName: 'splitTableVertically',
+						label: t( 'Split table left/right' )
+					}
+				}
+			];
+
+			return this._prepareDropdown( t( 'Split Table' ), splitTableIcon, options, locale );
+		} );
+
 		editor.ui.componentFactory.add( 'mergeTableCells', locale => {
 			const options = [
 				{
@@ -235,7 +257,9 @@ export default class TableUI extends Plugin {
 		} );
 
 		this.listenTo( dropdownView, 'execute', evt => {
-			editor.execute( evt.source.commandName );
+			editor.execute( evt.source.commandName, {
+				value: evt.source.commandValue
+			} );
 			editor.editing.view.focus();
 		} );
 

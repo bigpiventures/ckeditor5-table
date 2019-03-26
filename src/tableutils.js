@@ -251,6 +251,224 @@ export default class TableUtils extends Plugin {
 	}
 
 	/**
+	 * Split a table vertically into two tables using a offset
+	 * preference
+	 *
+	 * 		+---+-----+----+
+	 *		| a | b[] |  c |
+	 *		+---+---+------+
+	 *		| d | e   | f  |
+	 *		+---+-----+----+
+	 *
+	 *    will be split into
+	 *
+	 *    +---+---+  +----+
+	 *		| a | b |  | c  |
+	 *		+---+---+  +----+
+	 *		| d | e |  | f  |
+	 *		+---+---+  +----+
+	 *
+	 *    when insertAfter is true
+	 *
+	 *
+	 * @param  {module:engine/model/element~Element} table
+	 * @param  {module:engine/model/element~Element} tableCell
+	 * @param  {String} insertAfter Whether the split happens before or after current cell
+	 */
+	splitTableAlongColumns( table, tableCell, insertAfter ) {
+		// Get all cells to the right of current tableCell for each row.
+		const tableMap = [ ...new TableWalker( table ) ];
+
+		const tableCellInfo = tableMap.find( ( { cell } ) => cell === tableCell );
+
+		const breakerCol = insertAfter ? tableCellInfo.column : tableCell.column - 1;
+
+		if ( breakerCol === tableCellInfo.cell.parent.childCount - 1 ) {
+			return;
+		}
+
+		const verticalTableCells = tableMap.filter( cell => cell.column === breakerCol );
+
+		verticalTableCells.map( tableCell => this.splitCellVertically( tableCell.cell, 1 ) );
+
+		const tableWalker = new TableWalker( table, { startRow: 0, includeSpanned: true } );
+
+		const leftTableCells = [];
+		const rightTableCells = [];
+
+		// Get the row and column of the given tableCell
+		for ( const cellInfo of tableWalker ) {
+			if ( cellInfo.column > breakerCol ) {
+				rightTableCells.push( cellInfo );
+			} else {
+				leftTableCells.push( cellInfo );
+			}
+		}
+
+		const model = this.editor.model;
+
+		model.change( writer => {
+			// Delete the current table
+			const range = writer.createRangeOn( table );
+
+			// Create two tables
+			const leftTable = writer.createElement( 'table', table.getAttributes() );
+			const rightTable = writer.createElement( 'table', table.getAttributes() );
+
+			writer.insert( rightTable, range.end );
+			writer.insert( leftTable, range.end );
+
+			// Create rows for each table according to row and column attributes
+			for ( let i = 0; i < table.childCount; i++ ) {
+				const leftTableRow = writer.createElement( 'tableRow' );
+				const rightTableRow = writer.createElement( 'tableRow' );
+
+				writer.insert( leftTableRow, leftTable, 'end' );
+				writer.insert( rightTableRow, rightTable, 'end' );
+
+				// Insert children
+				leftTableCells
+					.filter( c => c.row === i )
+					.filter( c => c.cell ) // Skip spanned cells
+					.map( cell => {
+						// Create a new cell to which children will be added
+						const newCell = writer.createElement( 'tableCell', cell.cell.getAttributes() );
+
+						writer.insert( newCell, leftTableRow, 'end' );
+
+						writer.move( writer.createRangeIn( cell.cell ), newCell, 0 );
+					} );
+
+				rightTableCells
+					.filter( c => c.row === i )
+					.filter( c => c.cell ) // Skip spanned cells
+					.map( cell => {
+						const newCell = writer.createElement( 'tableCell', cell.cell.getAttributes() );
+
+						writer.insert( newCell, rightTableRow, 'end' );
+
+						writer.move( writer.createRangeIn( cell.cell ), newCell, 0 );
+					} );
+			}
+
+			writer.remove( range );
+		} );
+	}
+
+	/**
+	 * Split a table horizontally into two tables using a offset
+	 * preference
+	 *
+	 * 		+---+-----+----+
+	 *		| a | b[] |  c |
+	 *		+---+-----+----+
+	 *		| d | e   | f  |
+	 *		+---+-----+----+
+	 *
+	 *    will be split into
+	 *
+	 *    +---+---+----+
+	 *		| a | b | c  |
+	 *		+---+---+----+
+	 *
+   *    +---+----+----+
+   *		| d  | e | f  |
+   *		+----+---+----+
+	 *
+	 *    when insertAfter is true
+	 *
+	 *
+	 * @param  {module:engine/model/element~Element} table
+	 * @param  {module:engine/model/element~Element} tableCell
+	 * @param  {String} insertAfter Whether the split happens before or after current cell
+	 */
+	splitTableAlongRows( table, tableCell, insertAfter ) {
+		// Get all cells to the right of current tableCell for each row.
+		const tableMap = [ ...new TableWalker( table ) ];
+
+		const tableCellInfo = tableMap.find( ( { cell } ) => cell === tableCell );
+
+		const breakerRow = insertAfter ? tableCellInfo.row : tableCell.row - 1;
+
+		if ( breakerRow === table.childCount - 1 ) {
+			return;
+		}
+
+		const horizontalTableCells = tableMap.filter( cell => cell.row === breakerRow );
+
+		horizontalTableCells.map( tableCell => this.splitCellVertically( tableCell.cell, 1 ) );
+
+		const tableWalker = new TableWalker( table, { startRow: 0, includeSpanned: true } );
+
+		const topTableCells = [];
+		const bottomTableCells = [];
+
+		// Get the row and column of the given tableCell
+		for ( const cellInfo of tableWalker ) {
+			if ( cellInfo.row > breakerRow ) {
+				bottomTableCells.push( cellInfo );
+			} else {
+				topTableCells.push( cellInfo );
+			}
+		}
+
+		const model = this.editor.model;
+
+		model.change( writer => {
+			// Delete the current table
+			const range = writer.createRangeOn( table );
+
+			// Create two tables
+			const topTable = writer.createElement( 'table', table.getAttributes() );
+			const bottomTable = writer.createElement( 'table', table.getAttributes() );
+
+			writer.insert( bottomTable, range.end );
+			writer.insert( topTable, range.end );
+
+			// Create rows for each table according to row and column attributes
+			for ( let i = 0; i <= breakerRow; i++ ) {
+				const topTableRow = writer.createElement( 'tableRow' );
+
+				writer.insert( topTableRow, writer.createPositionAt( topTable, 'end' ) );
+
+				// Insert children
+				topTableCells
+					.filter( c => c.row === i )
+					.filter( c => c.cell ) // Skip spanned cells
+					.map( cell => {
+						// Create a new cell to which children will be added
+						const newCell = writer.createElement( 'tableCell', cell.cell.getAttributes() );
+
+						writer.insert( newCell, topTableRow, 'end' );
+
+						writer.move( writer.createRangeIn( cell.cell ), newCell, 0 );
+					} );
+			}
+
+			// Create rows for each table according to row and column attributes
+			for ( let i = breakerRow + 1; i < table.childCount; i++ ) {
+				const bottomTableRow = writer.createElement( 'tableRow' );
+
+				// writer.insert( topTableRow, writer.createPositionAt ( topTable , 'end' ) );
+				writer.insert( bottomTableRow, writer.createPositionAt( bottomTable, 'end' ) );
+
+				bottomTableCells
+					.filter( c => c.row === i )
+					.filter( c => c.cell ) // Skip spanned cells
+					.map( cell => {
+						const newCell = writer.createElement( 'tableCell', cell.cell.getAttributes() );
+
+						writer.insert( newCell, bottomTableRow, 'end' );
+
+						writer.move( writer.createRangeIn( cell.cell ), newCell, 0 );
+					} );
+			}
+
+			writer.remove( range );
+		} );
+	}
+
+	/**
 	 * Divides a table cell vertically into several ones.
 	 *
 	 * The cell will be visually split into more cells by updating colspans of other cells in a column
